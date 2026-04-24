@@ -1,0 +1,53 @@
+{
+  "entities": {
+    "Album": {
+      "title": "Album",
+      "description": "A collection of photos from a specific event or shoot",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The name of the album" },
+        "date": { "type": "string", "format": "date-time", "description": "The date the event took place" },
+        "category": { "type": "string", "enum": ["wedding", "baby", "couple", "travel", "reportage"], "description": "The type of shoot" },
+        "description": { "type": "string", "description": "Optional description of the event" },
+        "coverImage": { "type": "string", "description": "URL to the featured image for this album" }
+      },
+      "required": ["title", "date", "category", "coverImage"]
+    },
+    "Photo": {
+      "title": "Photo",
+      "description": "An image belonging to an album",
+      "type": "object",
+      "properties": {
+        "url": { "type": "string", "description": "Public URL of the photo" },
+        "albumId": { "type": "string", "description": "ID of the parent album" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the photo was uploaded" }
+      },
+      "required": ["url", "albumId"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Client testimonial",
+      "type": "object",
+      "properties": {
+        "clientName": { "type": "string", "description": "Name of the client" },
+        "content": { "type": "string", "description": "The testimonial text" },
+        "date": { "type": "string", "format": "date-time", "description": "Date of the review" }
+      },
+      "required": ["clientName", "content", "date"]
+    }
+  },
+  "firestore": {
+    "albums": {
+      "schema": "Album",
+      "description": "Main collection for event albums"
+    },
+    "photos": {
+      "schema": "Photo",
+      "description": "Flat list of photos, indexed by albumId"
+    },
+    "reviews": {
+      "schema": "Review",
+      "description": "Client feedback"
+    }
+  }
+}

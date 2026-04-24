@@ -1,0 +1,92 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && 
+             request.auth.token.email == 'laureen.ratinckx@gmail.com' && 
+             request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Albums ---
+    match /albums/{albumId} {
+      function isValidAlbum(data) {
+        return data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+               data.category in ['wedding', 'baby', 'couple', 'travel', 'reportage'] &&
+               data.date is timestamp &&
+               data.coverImage is string && data.coverImage.size() <= 1000 &&
+               (data.get('description', '') is string && data.get('description', '').size() <= 2000);
+      }
+
+      allow read: if true;
+      allow create: if isAdmin() && isValidAlbum(incoming()) && isValidId(albumId);
+      allow update: if isAdmin() && isValidAlbum(incoming()) && 
+                    incoming().diff(existing()).affectedKeys().hasOnly(['title', 'date', 'category', 'description', 'coverImage']);
+      allow delete: if isAdmin();
+    }
+
+    // --- Photos ---
+    match /photos/{photoId} {
+      function isValidPhoto(data) {
+        return data.url is string && data.url.size() <= 1000 &&
+               data.albumId is string && exists(/databases/$(database)/documents/albums/$(data.albumId)) &&
+               data.createdAt is timestamp;
+      }
+
+      allow read: if true;
+      allow create: if isAdmin() && isValidPhoto(incoming()) && isValidId(photoId);
+      allow update: if isAdmin() && isValidPhoto(incoming()) &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['url', 'albumId', 'createdAt']);
+      allow delete: if isAdmin();
+    }
+
+    // --- Reviews ---
+    match /reviews/{reviewId} {
+      function isValidReview(data) {
+        return data.clientName is string && data.clientName.size() <= 100 &&
+               data.content is string && data.content.size() <= 5000 &&
+               data.date is timestamp;
+      }
+
+      allow read: if true;
+      allow create: if isAdmin() && isValidReview(incoming()) && isValidId(reviewId);
+      allow update: if isAdmin() && isValidReview(incoming()) &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['clientName', 'content', 'date']);
+      allow delete: if isAdmin();
+    }
+
+    // --- Messages (Contact Form) ---
+    match /messages/{messageId} {
+      function isValidMessage(data) {
+        return data.name is string && data.name.size() <= 100 &&
+               data.email is string && data.email.size() <= 100 &&
+               data.message is string && data.message.size() <= 5000 &&
+               data.createdAt == request.time;
+      }
+
+      allow create: if isValidMessage(incoming()) && isValidId(messageId);
+      allow read, delete: if isAdmin();
+    }
+  }
+}
