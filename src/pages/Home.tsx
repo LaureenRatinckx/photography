@@ -45,7 +45,7 @@ export default function Home() {
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=2070" 
+            src="https://res.cloudinary.com/dkp4ebm8s/image/upload/v1780666650/photography/7WNqVpoLHjdYkT27trsu/r15bn8vefdtuvkvsdpe9.jpg" 
             alt="Hero Background" 
             className="w-full h-full object-cover grayscale brightness-50 opacity-70"
             referrerPolicy="no-referrer"
