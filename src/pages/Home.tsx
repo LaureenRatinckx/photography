@@ -8,19 +8,19 @@ import { format } from 'date-fns';
 
 const testimonials = [
   {
-    name: "Emma & Thomas",
-    text: "Laureen heeft onze trouwdag op een ongelooflijk integere manier vastgelegd. De foto's voelen zo echt en puur.",
-    category: "Wedding"
-  },
-  {
-    name: "Sophie",
-    text: "De babyshoot was zo relaxed. Laureen heeft oog voor de kleine details die je anders vergeet.",
+    name: "Noémie",
+    text: "Oh echt bedankt voor de mooie foto's! Ik ga er nog steeds terug naar piepeloeren",
     category: "Baby"
   },
   {
-    name: "Marc",
-    text: "Prachtige reportage van onze reis. Ze vangt de sfeer perfect zonder op te vallen.",
-    category: "Travel"
+    name: "Gilles",
+    text: "Waaaauw hoe tof is da!",
+    category: "Couple"
+  },
+  {
+    name: "Amélie & Martin",
+    text: "Oh merci Laureen!! We hebben er net samen naar gekeken, ze zijn SUPER! Het gaat zeer moeilijk zijn om een selectie te maken voor instagram. Echt top!",
+    category: "Wedding"
   }
 ];
 
