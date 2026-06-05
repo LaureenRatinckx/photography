@@ -31,6 +31,7 @@ export default function Portfolio() {
     { id: 'couple', name: 'Couple' },
     { id: 'travel', name: 'Travel' },
     { id: 'reportage', name: 'Reportage' },
+    { id: 'reportage', name: 'Events' },
   ];
 
   return (
