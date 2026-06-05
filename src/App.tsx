@@ -48,7 +48,7 @@ const Navbar = () => {
               {link.name}
             </Link>
           ))}
-          <a href="https://instagram.com" target="_blank" rel="noreferrer" className="text-brand-ink/50 hover:text-brand-ink">
+          <a href="https://www.instagram.com/laureen.photography/" target="_blank" rel="noreferrer" className="text-brand-ink/50 hover:text-brand-ink">
             <Instagram size={18} />
           </a>
         </div>
@@ -78,7 +78,7 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
-            <a href="https://instagram.com" target="_blank" rel="noreferrer" className="flex items-center space-x-2 text-sm uppercase tracking-widest">
+            <a href="https://www.instagram.com/laureen.photography/" target="_blank" rel="noreferrer" className="flex items-center space-x-2 text-sm uppercase tracking-widest">
               <Instagram size={18} />
               <span>Instagram</span>
             </a>
@@ -110,10 +110,10 @@ const Footer = () => (
       <div>
         <h4 className="text-xs uppercase tracking-widest text-brand-ink/40 mb-6">Social</h4>
         <div className="flex items-center space-x-6">
-          <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:opacity-70 transition-opacity">
+          <a href="https://www.instagram.com/laureen.photography/" target="_blank" rel="noreferrer" className="hover:opacity-70 transition-opacity">
             <Instagram size={20} />
           </a>
-          <a href="mailto:contact@laureenratinckx.be" className="hover:opacity-70 transition-opacity">
+          <a href="mailto:laureen.ratinckx@hotmail.com" className="hover:opacity-70 transition-opacity">
             <Mail size={20} />
           </a>
         </div>
