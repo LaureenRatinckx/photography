@@ -36,7 +36,7 @@ export default function Contact() {
     } catch (err) {
       console.error(err);
       setStatus('error');
-      setErrorMessage('Er is iets misgegaan. Probeer het later opnieuw.');
+      setErrorMessage('Oeps! Er is iets misgegaan. Probeer het later opnieuw.');
     }
   };
 
@@ -122,11 +122,11 @@ export default function Contact() {
         <div className="mt-32 pt-16 border-t border-brand-ink/5 grid grid-cols-1 md:grid-cols-2 gap-12 text-center md:text-left">
           <div>
             <h4 className="text-[10px] uppercase tracking-widest text-brand-ink/40 mb-4">Direct Mail</h4>
-            <a href="mailto:contact@laureenratinckx.be" className="serif text-xl border-b border-brand-ink hover:pb-1 transition-all">contact@laureenratinckx.be</a>
+            <a href="mailto:laureen.ratinckx@hotmail.com" className="serif text-xl border-b border-brand-ink hover:pb-1 transition-all">laureen.ratinckx@hotmail.com</a>
           </div>
           <div>
             <h4 className="text-[10px] uppercase tracking-widest text-brand-ink/40 mb-4">Instagram</h4>
-            <a href="https://instagram.com" target="_blank" rel="noreferrer" className="serif text-xl border-b border-brand-ink hover:pb-1 transition-all">@laureenratinckx</a>
+            <a href="https://www.instagram.com/laureen.photography/" target="_blank" rel="noreferrer" className="serif text-xl border-b border-brand-ink hover:pb-1 transition-all">@laureenratinckx</a>
           </div>
         </div>
       </div>
