@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { auth, googleProvider, githubProvider, db, Album } from '../lib/firebase';
 import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, Timestamp, query, where, orderBy } from 'firebase/firestore';
-import { LogIn, LogOut, Plus, Trash2, Camera, FolderPlus, Grid, Image as ImageIcon, Check, Github } from 'lucide-react';
+import { LogIn, LogOut, Plus, Trash2, Camera, FolderPlus, Grid, Image as ImageIcon, Check, Github, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
 
 const ADMIN_EMAIL = 'laureen.ratinckx@gmail.com';
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const CLOUDINARY_UPLOAD_PRESET = 'photography_unsigned'; // zie stap hieronder
 
 export default function Admin() {
   const [user, setUser] = useState<User | null>(null);
@@ -23,58 +25,56 @@ export default function Admin() {
   const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
   const [photoUrl, setPhotoUrl] = useState('');
 
-  // GitHub Import State
-  const [ghUser, setGhUser] = useState('');
-  const [ghRepo, setGhRepo] = useState('');
-  const [ghPath, setGhPath] = useState('');
-  const [ghToken, setGhToken] = useState('');
-  const [isScanning, setIsScanning] = useState(false);
+  // Cloudinary Upload State
+  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleGithubImport = async () => {
-    if (!selectedAlbumId || !ghUser || !ghRepo || !ghToken) {
-        alert('Vul alle GitHub velden in.');
-        return;
+  const handleCloudinaryUpload = async () => {
+    if (!selectedAlbumId || uploadFiles.length === 0) {
+      alert('Selecteer een album en kies minstens één foto.');
+      return;
     }
-    
-    setIsScanning(true);
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
     try {
-      const response = await fetch(`https://api.github.com/repos/${ghUser}/${ghRepo}/contents/${ghPath}`, {
-        headers: {
-          'Authorization': `token ${ghToken}`,
-          'Accept': 'application/vnd.github.v3+json'
-        }
-      });
-
-      if (!response.ok) throw new Error('GitHub folder niet gevonden of token ongeldig.');
-
-      const files = await response.json();
-      if (!Array.isArray(files)) throw new Error('Het opgegeven pad is geen folder.');
-      
-      const imageFiles = files.filter((f: any) => 
-        f.type === 'file' && /\.(jpg|jpeg|png|webp|gif)$/i.test(f.name)
-      );
-
-      if (imageFiles.length === 0) {
-        alert('Geen afbeeldingen gevonden in deze folder.');
-        return;
-      }
-
       let count = 0;
-      for (const file of imageFiles) {
+      for (const file of uploadFiles) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        formData.append('folder', `photography/${selectedAlbumId}`);
+
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+          { method: 'POST', body: formData }
+        );
+
+        if (!response.ok) throw new Error('Upload mislukt voor ' + file.name);
+
+        const data = await response.json();
+
         await addDoc(collection(db, 'photos'), {
-          url: file.download_url,
+          url: data.secure_url,
           albumId: selectedAlbumId,
           createdAt: serverTimestamp(),
         });
+
         count++;
+        setUploadProgress(Math.round((count / uploadFiles.length) * 100));
       }
-      
-      alert(`${count} foto's succesvol geïmporteerd van GitHub!`);
-      setGhPath('');
+
+      alert(`${count} foto's succesvol geüpload!`);
+      setUploadFiles([]);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err: any) {
-      alert(err.message);
+      alert('Fout bij uploaden: ' + err.message);
     } finally {
-      setIsScanning(false);
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -142,7 +142,6 @@ export default function Admin() {
   };
 
   const handleCreateDemo = async () => {
-    // Helper to seed some data
     const demoAlbum = {
       title: "Demo Trouwreportage",
       date: Timestamp.fromDate(new Date()),
@@ -152,7 +151,6 @@ export default function Admin() {
     };
     const docRef = await addDoc(collection(db, 'albums'), demoAlbum);
     
-    // Add some photos
     for(let i=0; i<6; i++) {
         await addDoc(collection(db, 'photos'), {
             url: `https://picsum.photos/seed/demo-${i}/1200/800`,
@@ -334,9 +332,9 @@ export default function Admin() {
                       animate={{ opacity: 1, height: 'auto' }}
                       className="pt-6 border-t border-brand-ink/10 space-y-8"
                     >
-                      {/* Manual Add */}
+                      {/* Manual Add via URL */}
                       <div>
-                        <h4 className="text-[10px] uppercase tracking-widest mb-4 opacity-40">Handmatig Foto Toevoegen</h4>
+                        <h4 className="text-[10px] uppercase tracking-widest mb-4 opacity-40">Handmatig URL Toevoegen</h4>
                         <form onSubmit={handleAddPhoto} className="flex gap-4">
                           <input 
                             required
@@ -351,48 +349,79 @@ export default function Admin() {
                         </form>
                       </div>
 
-                      {/* GitHub Import */}
+                      {/* Cloudinary Upload */}
                       <div className="bg-brand-ink/5 p-6 rounded-sm border border-brand-ink/5">
                         <h4 className="text-[10px] uppercase tracking-widest mb-4 flex items-center">
-                          <Camera className="mr-2" size={14} /> Importeer van GitHub (Private Repo)
+                          <Upload className="mr-2" size={14} /> Foto's Uploaden via Cloudinary
                         </h4>
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                          <input 
-                            placeholder="GitHub User (bv. lratinckx)"
-                            value={ghUser}
-                            onChange={e => setGhUser(e.target.value)}
-                            className="bg-white border border-brand-ink/5 px-3 py-2 text-xs outline-none"
-                          />
-                          <input 
-                            placeholder="Repo Name (bv. portfolio-fotos)"
-                            value={ghRepo}
-                            onChange={e => setGhRepo(e.target.value)}
-                            className="bg-white border border-brand-ink/5 px-3 py-2 text-xs outline-none"
-                          />
-                          <input 
-                            placeholder="Path in repo (bv. weddings/jan)"
-                            value={ghPath}
-                            onChange={e => setGhPath(e.target.value)}
-                            className="bg-white border border-brand-ink/5 px-3 py-2 text-xs outline-none"
-                          />
-                          <input 
-                            type="password"
-                            placeholder="GitHub Access Token"
-                            value={ghToken}
-                            onChange={e => setGhToken(e.target.value)}
-                            className="bg-white border border-brand-ink/5 px-3 py-2 text-xs outline-none"
+
+                        {/* Dropzone */}
+                        <div
+                          className="border-2 border-dashed border-brand-ink/20 rounded-sm p-8 text-center cursor-pointer hover:border-brand-ink/50 transition-colors mb-4"
+                          onClick={() => fileInputRef.current?.click()}
+                          onDragOver={e => e.preventDefault()}
+                          onDrop={e => {
+                            e.preventDefault();
+                            const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                            setUploadFiles(prev => [...prev, ...files]);
+                          }}
+                        >
+                          <Camera className="mx-auto mb-3 text-brand-ink/30" size={28} />
+                          <p className="text-xs text-brand-ink/40 uppercase tracking-widest">Klik of sleep foto's hierheen</p>
+                          <p className="text-[10px] text-brand-ink/20 mt-1">JPG, PNG, WEBP</p>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            className="hidden"
+                            onChange={e => {
+                              const files = Array.from(e.target.files || []);
+                              setUploadFiles(prev => [...prev, ...files]);
+                            }}
                           />
                         </div>
+
+                        {/* Selected files preview */}
+                        {uploadFiles.length > 0 && (
+                          <div className="mb-4 space-y-2">
+                            <p className="text-[10px] uppercase tracking-widest text-brand-ink/40">{uploadFiles.length} foto('s) geselecteerd</p>
+                            <div className="flex flex-wrap gap-2">
+                              {uploadFiles.map((file, i) => (
+                                <div key={i} className="flex items-center gap-1 bg-white px-2 py-1 rounded text-[10px]">
+                                  <span className="truncate max-w-[120px]">{file.name}</span>
+                                  <button
+                                    onClick={() => setUploadFiles(prev => prev.filter((_, idx) => idx !== i))}
+                                    className="text-brand-ink/30 hover:text-red-500"
+                                  >
+                                    <X size={10} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Progress bar */}
+                        {isUploading && (
+                          <div className="mb-4">
+                            <div className="w-full bg-brand-ink/10 rounded-full h-1">
+                              <div
+                                className="bg-brand-ink h-1 rounded-full transition-all"
+                                style={{ width: `${uploadProgress}%` }}
+                              />
+                            </div>
+                            <p className="text-[10px] text-brand-ink/40 mt-1 text-center">{uploadProgress}%</p>
+                          </div>
+                        )}
+
                         <button 
-                          onClick={handleGithubImport}
-                          disabled={isScanning}
+                          onClick={handleCloudinaryUpload}
+                          disabled={isUploading || uploadFiles.length === 0}
                           className="w-full py-3 bg-brand-ink text-brand-offwhite text-[10px] uppercase tracking-widest hover:bg-brand-accent hover:text-brand-ink transition-all disabled:opacity-50"
                         >
-                          {isScanning ? 'Scannen...' : 'Scan Folder & Importeer Foto\'s'}
+                          {isUploading ? `Uploaden... ${uploadProgress}%` : `Upload ${uploadFiles.length > 0 ? uploadFiles.length + ' foto\'s' : 'Foto\'s'}`}
                         </button>
-                        <p className="mt-2 text-[9px] text-brand-ink/40 leading-relaxed italic">
-                          Tip: Maak een "Personal Access Token" aan op GitHub om toegang te krijgen tot je private repo. De foto's worden direct aan dit album toegevoegd.
-                        </p>
                       </div>
 
                       <p className="mt-4 text-[9px] text-brand-ink/40 tracking-widest italic uppercase">
