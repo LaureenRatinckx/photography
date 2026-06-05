@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { auth, googleProvider, githubProvider, db, Album } from '../lib/firebase';
 import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
-import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, Timestamp, query, where, orderBy } from 'firebase/firestore';
-import { LogIn, LogOut, Plus, Trash2, Camera, FolderPlus, Grid, Image as ImageIcon, Check, Github, Upload, X } from 'lucide-react';
+import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, Timestamp, query, where, orderBy, updateDoc, onSnapshot } from 'firebase/firestore';
+import { LogIn, LogOut, Plus, Trash2, Camera, FolderPlus, Grid, Image as ImageIcon, Check, Github, Upload, X, Star } from 'lucide-react';
 import { format } from 'date-fns';
 
 const ADMIN_EMAIL = 'laureen.ratinckx@gmail.com';
@@ -30,6 +30,23 @@ export default function Admin() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Photos per album (for cover selection)
+  const [albumPhotos, setAlbumPhotos] = useState<{[albumId: string]: any[]}>({});
+
+  const loadAlbumPhotos = (albumId: string) => {
+    const q = query(collection(db, 'photos'), where('albumId', '==', albumId));
+    onSnapshot(q, (snapshot) => {
+      const photos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      setAlbumPhotos(prev => ({ ...prev, [albumId]: photos }));
+    });
+  };
+
+  const handleSetCover = async (albumId: string, photoUrl: string) => {
+    await updateDoc(doc(db, 'albums', albumId), { coverImage: photoUrl });
+    fetchData();
+    alert('Coverfoto bijgewerkt!');
+  };
 
   const handleCloudinaryUpload = async () => {
     if (!selectedAlbumId || uploadFiles.length === 0) {
@@ -262,10 +279,9 @@ export default function Admin() {
                 </select>
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-widest text-brand-ink/40 mb-2 block">Cover Image URL</label>
+                <label className="text-[10px] uppercase tracking-widest text-brand-ink/40 mb-2 block">Cover Image URL <span className="opacity-50">(optioneel — of kies na uploaden)</span></label>
                 <input 
-                  required
-                  placeholder="https://..."
+                  placeholder="https://... (optioneel)"
                   value={newAlbum.coverImage}
                   onChange={e => setNewAlbum({...newAlbum, coverImage: e.target.value})}
                   className="w-full bg-transparent border-b border-brand-ink/10 py-2 focus:border-brand-ink outline-none px-0 text-xs"
@@ -314,7 +330,11 @@ export default function Admin() {
                     </div>
                     <div className="flex space-x-4">
                       <button 
-                        onClick={() => setSelectedAlbumId(selectedAlbumId === album.id ? null : album.id!)}
+                        onClick={() => {
+                          const newId = selectedAlbumId === album.id ? null : album.id!;
+                          setSelectedAlbumId(newId);
+                          if (newId) loadAlbumPhotos(newId);
+                        }}
                         className={`p-2 rounded-full ${selectedAlbumId === album.id ? 'bg-brand-ink text-white' : 'hover:bg-brand-ink/5'}`}
                         title="Voeg foto's toe"
                       >
@@ -427,6 +447,40 @@ export default function Admin() {
                       <p className="mt-4 text-[9px] text-brand-ink/40 tracking-widest italic uppercase">
                         De foto's in het album worden voor de bezoeker automatisch door elkaar gehusseld.
                       </p>
+
+                      {/* Cover Photo Selector */}
+                      {albumPhotos[album.id!]?.length > 0 && (
+                        <div>
+                          <h4 className="text-[10px] uppercase tracking-widest mb-4 opacity-40 flex items-center">
+                            <Star className="mr-2" size={12} /> Kies Coverfoto
+                          </h4>
+                          <div className="grid grid-cols-3 gap-2">
+                            {albumPhotos[album.id!].map((photo: any) => (
+                              <div
+                                key={photo.id}
+                                className="relative cursor-pointer group"
+                                onClick={() => handleSetCover(album.id!, photo.url)}
+                              >
+                                <img
+                                  src={photo.url}
+                                  alt="foto"
+                                  className="w-full h-24 object-cover rounded-sm"
+                                />
+                                {album.coverImage === photo.url ? (
+                                  <div className="absolute inset-0 bg-brand-ink/40 rounded-sm flex items-center justify-center">
+                                    <Star size={20} className="text-white fill-white" />
+                                  </div>
+                                ) : (
+                                  <div className="absolute inset-0 bg-brand-ink/0 group-hover:bg-brand-ink/20 rounded-sm transition-all flex items-center justify-center">
+                                    <Star size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-[9px] text-brand-ink/30 mt-2 italic">Klik op een foto om die als cover in te stellen.</p>
+                        </div>
+                      )}
                     </motion.div>
                   )}
                 </div>
