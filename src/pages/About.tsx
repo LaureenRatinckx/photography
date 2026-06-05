@@ -53,17 +53,18 @@ export default function About() {
               <div>
                 <h4 className="text-xs uppercase tracking-widest text-brand-ink/40 mb-4">Focus</h4>
                 <ul className="text-sm space-y-2">
-                  <li>Lifestyle</li>
                   <li>Weddings</li>
-                  <li>Travel Reportage</li>
+                  <li>Travel</li>
+                  <li>Reportage</li>
+                  <li>Events</li>
                   <li>Baby & Family</li>
                 </ul>
               </div>
               <div>
                 <h4 className="text-xs uppercase tracking-widest text-brand-ink/40 mb-4">Contact</h4>
                 <div className="flex space-x-6 text-brand-ink/60">
-                  <a href="mailto:contact@laureenratinckx.be" className="hover:text-brand-ink transition-colors"><Mail size={20}/></a>
-                  <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-brand-ink transition-colors"><Instagram size={20}/></a>
+                  <a href="mailto:laureen.ratinkcx@hotmail.com" className="hover:text-brand-ink transition-colors"><Mail size={20}/></a>
+                  <a href="https://www.instagram.com/laureen.photography/" target="_blank" rel="noreferrer" className="hover:text-brand-ink transition-colors"><Instagram size={20}/></a>
                 </div>
               </div>
             </div>
