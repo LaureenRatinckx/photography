@@ -291,6 +291,7 @@ export default function Admin() {
                   <option value="couple">Couple</option>
                   <option value="travel">Travel</option>
                   <option value="reportage">Reportage</option>
+                  <option value="events">Events</option>
                 </select>
               </div>
               <div>
