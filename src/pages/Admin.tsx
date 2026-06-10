@@ -6,7 +6,7 @@ import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, Timestamp
 import { LogIn, LogOut, Plus, Trash2, Camera, FolderPlus, Grid, Image as ImageIcon, Check, Github, Upload, X, Star } from 'lucide-react';
 import { format } from 'date-fns';
 
-const ADMIN_EMAIL = 'laureen.ratinckx@gmail.com';
+const ADMIN_EMAIL = 'laureen.ratinckx@hotmail.com';
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const CLOUDINARY_UPLOAD_PRESET = 'photography_unsigned'; // zie stap hieronder
 
