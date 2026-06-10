@@ -29,7 +29,7 @@ export interface Album {
   id?: string;
   title: string;
   date: any;
-  category: 'wedding' | 'baby' | 'couple' | 'travel' | 'reportage';
+  category: 'wedding' | 'baby' | 'couple' | 'travel' | 'reportage' | 'events';
   description?: string;
   coverImage: string;
 }
