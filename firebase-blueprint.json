@@ -7,7 +7,7 @@
       "properties": {
         "title": { "type": "string", "description": "The name of the album" },
         "date": { "type": "string", "format": "date-time", "description": "The date the event took place" },
-        "category": { "type": "string", "enum": ["wedding", "baby", "couple", "travel", "reportage"], "description": "The type of shoot" },
+        "category": { "type": "string", "enum": ["wedding", "baby", "couple", "travel", "reportage", "events"], "description": "The type of shoot" },
         "description": { "type": "string", "description": "Optional description of the event" },
         "coverImage": { "type": "string", "description": "URL to the featured image for this album" }
       },
