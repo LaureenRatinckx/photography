@@ -48,6 +48,21 @@ export default function Admin() {
     alert('Coverfoto bijgewerkt!');
   };
 
+  // Edit description state
+  const [editDescriptions, setEditDescriptions] = useState<{[albumId: string]: string}>({});
+
+  const handleUpdateDescription = async (albumId: string) => {
+    await updateDoc(doc(db, 'albums', albumId), { description: editDescriptions[albumId] });
+    fetchData();
+    alert('Beschrijving opgeslagen!');
+  };
+
+  const handleDeletePhoto = async (photoId: string) => {
+    if (confirm('Foto verwijderen uit dit album?')) {
+      await deleteDoc(doc(db, 'photos', photoId));
+    }
+  };
+
   const handleCloudinaryUpload = async () => {
     if (!selectedAlbumId || uploadFiles.length === 0) {
       alert('Selecteer een album en kies minstens één foto.');
@@ -352,6 +367,24 @@ export default function Admin() {
                       animate={{ opacity: 1, height: 'auto' }}
                       className="pt-6 border-t border-brand-ink/10 space-y-8"
                     >
+                      {/* Edit Description */}
+                      <div>
+                        <h4 className="text-[10px] uppercase tracking-widest mb-4 opacity-40">Beschrijving Bewerken</h4>
+                        <textarea
+                          rows={3}
+                          value={editDescriptions[album.id!] ?? album.description ?? ''}
+                          onChange={e => setEditDescriptions(prev => ({ ...prev, [album.id!]: e.target.value }))}
+                          className="w-full bg-white/50 border border-brand-ink/10 px-4 py-2 text-sm outline-none focus:border-brand-ink rounded-sm"
+                          placeholder="Beschrijving van dit album..."
+                        />
+                        <button
+                          onClick={() => handleUpdateDescription(album.id!)}
+                          className="mt-2 px-4 py-2 bg-brand-accent text-brand-ink text-[10px] uppercase tracking-widest font-bold rounded-sm"
+                        >
+                          Opslaan
+                        </button>
+                      </div>
+
                       {/* Manual Add via URL */}
                       <div>
                         <h4 className="text-[10px] uppercase tracking-widest mb-4 opacity-40">Handmatig URL Toevoegen</h4>
@@ -448,37 +481,44 @@ export default function Admin() {
                         De foto's in het album worden voor de bezoeker automatisch door elkaar gehusseld.
                       </p>
 
-                      {/* Cover Photo Selector */}
+                      {/* Cover Photo Selector & Photo Management */}
                       {albumPhotos[album.id!]?.length > 0 && (
                         <div>
                           <h4 className="text-[10px] uppercase tracking-widest mb-4 opacity-40 flex items-center">
-                            <Star className="mr-2" size={12} /> Kies Coverfoto
+                            <Star className="mr-2" size={12} /> Foto's Beheren — Kies Cover of Verwijder
                           </h4>
                           <div className="grid grid-cols-3 gap-2">
                             {albumPhotos[album.id!].map((photo: any) => (
-                              <div
-                                key={photo.id}
-                                className="relative cursor-pointer group"
-                                onClick={() => handleSetCover(album.id!, photo.url)}
-                              >
+                              <div key={photo.id} className="relative group">
                                 <img
                                   src={photo.url}
                                   alt="foto"
                                   className="w-full h-24 object-cover rounded-sm"
                                 />
+                                {/* Cover overlay */}
                                 {album.coverImage === photo.url ? (
-                                  <div className="absolute inset-0 bg-brand-ink/40 rounded-sm flex items-center justify-center">
+                                  <div className="absolute inset-0 bg-brand-ink/40 rounded-sm flex items-center justify-center pointer-events-none">
                                     <Star size={20} className="text-white fill-white" />
                                   </div>
                                 ) : (
-                                  <div className="absolute inset-0 bg-brand-ink/0 group-hover:bg-brand-ink/20 rounded-sm transition-all flex items-center justify-center">
+                                  <div
+                                    className="absolute inset-0 bg-brand-ink/0 group-hover:bg-brand-ink/20 rounded-sm transition-all flex items-center justify-center cursor-pointer"
+                                    onClick={() => handleSetCover(album.id!, photo.url)}
+                                  >
                                     <Star size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                                   </div>
                                 )}
+                                {/* Delete button */}
+                                <button
+                                  onClick={() => handleDeletePhoto(photo.id)}
+                                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                >
+                                  <X size={12} />
+                                </button>
                               </div>
                             ))}
                           </div>
-                          <p className="text-[9px] text-brand-ink/30 mt-2 italic">Klik op een foto om die als cover in te stellen.</p>
+                          <p className="text-[9px] text-brand-ink/30 mt-2 italic">⭐ Klik op foto voor cover &nbsp;|&nbsp; ✕ Klik rechtsboven om te verwijderen.</p>
                         </div>
                       )}
                     </motion.div>
